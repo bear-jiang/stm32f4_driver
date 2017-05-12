@@ -1,9 +1,10 @@
 $(shell mkdir ./obj 2>/dev/null )
-include ../makefile.common
+include ./makefile.common
 
 SRCDIR = ./USART
 SRCDIR += ./PWM
 SRCDIR += ./LED
+SRCDIR += ./MPU6050
 
 
 INCDIR = $(SRCDIR)
@@ -22,6 +23,7 @@ OBJ = $(subst .c,.o,$(SRC))
 VPATH = $(SRCDIR)
 
 vpath %.o ./obj
+vpath %.a ./stm32f4_lib/obj
 
 INCLUDEDIR = $(addprefix -I,$(INCDIR))
 
@@ -29,13 +31,19 @@ INCLUDEDIR = $(addprefix -I,$(INCDIR))
 # 	@echo $(SRC)
 # 	@echo $(OBJ)
 
-driver:$(OBJ)
+driver:$(OBJ) libst.a
+
+libst.a:
+	cd stm32f4_lib&&make&&cd ..
 
 $(OBJ):%.o:%.c
 	$(CC)  $(STFLAGS) $< -o ./obj/$@
 
 
-.PHONY:bsp clean
+.PHONY:driver clean clean_st
 clean:
 	@-rm -r ./obj	
 	@echo "clean obj"
+
+clean_st:
+	cd stm32f4_lib&&make clean&&cd ..
