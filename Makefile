@@ -43,7 +43,7 @@ $(OBJ):%.o:%.c
 .PHONY:driver clean clean_st
 clean:
 	@-rm -r ./obj	
-	@echo "clean obj"
+	@echo "clean drivers"
 
 clean_st:
-	cd stm32f4_lib&&make clean&&cd ..
+	@cd stm32f4_lib&&make clean&&cd ..
