@@ -40,10 +40,12 @@ $(OBJ):%.o:%.c
 	$(CC)  $(STFLAGS) $< -o ./obj/$@
 
 
-.PHONY:driver clean clean_st
+.PHONY:driver clean clean_st clean_all
 clean:
 	@-rm -r ./obj	
 	@echo "clean drivers"
 
 clean_st:
 	@cd stm32f4_lib&&make clean&&cd ..
+
+clean_all:clean clean_st
