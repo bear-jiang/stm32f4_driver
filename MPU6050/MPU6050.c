@@ -1,6 +1,8 @@
 #include <MPU6050.h>
-
-
+#define ACC_FSR 16
+#define GYRO_FSR 2000
+Gyro gyro;
+Acc acc;
 void delay()
 {
 	int i,j;
@@ -94,18 +96,54 @@ void MPU6050SetSampleRate(uint16_t hz)
 	MPU6050Write(MPU_ADDR,MPU_SAMPLE_RATE_REG,1000/hz - 1);
 }
 
-void MPU6050Init()
+uint8_t MPU6050Init()
 {
-	// MPU6050Write(MPU6050_RA_SMPLRT_DIV,0x80);
+	uint8_t res;
 	MPU6050Write(MPU_ADDR,MPU_PWR_MGMT1_REG,0X80);
-	MPU6050Write(MPU_ADDR,MPU_PWR_MGMT1_REG,0X01);
 	delay();
+	MPU6050Write(MPU_ADDR,MPU_PWR_MGMT1_REG,0X00);
 	MPU6050Write(MPU_ADDR,MPU_CFG_REG,0x03);
 	MPU6050SetSampleRate(1000);
 	MPU6050Write(MPU_ADDR,MPU_GYRO_CFG_REG,0x18);
 	MPU6050Write(MPU_ADDR,MPU_ACCEL_CFG_REG,0x08);
+	res=MPU6050Read(MPU_ADDR,MPU_DEVICE_ID_REG);
+	if(res=MPU_ADDR)
+	{
+		MPU6050Write(MPU_ADDR,MPU_PWR_MGMT1_REG,0X01);
+	}
+	else
+	{
+		return -1;
+	}
 
-	return;
+	return 0;
 
 }
 
+void MPU6050GetGyro(Gyro *gyro)
+{
+	uint8_t data_1,data_2;
+	data_1=MPU6050Read(MPU_ADDR,MPU_GYRO_XOUTH_REG);
+	data_2=MPU6050Read(MPU_ADDR,MPU_GYRO_XOUTL_REG);
+	gyro->x_data = (int16_t)(data_1<<8|data_2)*GYRO_FSR/32768;
+	data_1=MPU6050Read(MPU_ADDR,MPU_GYRO_YOUTH_REG);
+	data_2=MPU6050Read(MPU_ADDR,MPU_GYRO_YOUTL_REG);
+	gyro->y_data = (int16_t)(data_1<<8|data_2)*GYRO_FSR/32768;
+	data_1=MPU6050Read(MPU_ADDR,MPU_GYRO_ZOUTH_REG);
+	data_2=MPU6050Read(MPU_ADDR,MPU_GYRO_ZOUTL_REG);
+	gyro->z_data = (int16_t)(data_1<<8|data_2)*GYRO_FSR/32768;
+}
+void MPU6050GetAcc(Acc *acc)
+{
+	uint8_t data_1,data_2;
+	data_1=MPU6050Read(MPU_ADDR,MPU_ACCEL_XOUTH_REG);
+	data_2=MPU6050Read(MPU_ADDR,MPU_ACCEL_XOUTL_REG);
+	acc->x_data = (int16_t)(data_1<<8|data_2)*ACC_FSR/32768;
+	data_1=MPU6050Read(MPU_ADDR,MPU_ACCEL_YOUTH_REG);
+	data_2=MPU6050Read(MPU_ADDR,MPU_ACCEL_YOUTL_REG);
+	acc->y_data = (int16_t)(data_1<<8|data_2)*ACC_FSR/32768;
+	data_1=MPU6050Read(MPU_ADDR,MPU_ACCEL_ZOUTH_REG);
+	data_2=MPU6050Read(MPU_ADDR,MPU_ACCEL_ZOUTL_REG);
+	acc->z_data = (int16_t)(data_1<<8|data_2)*ACC_FSR/32768;
+
+}

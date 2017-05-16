@@ -71,10 +71,46 @@
 #define MPU_FIFO_RW_REG			0X74	
 #define MPU_DEVICE_ID_REG		0X75	
 
+typedef struct{
+	int16_t x_data;
+	int16_t y_data;
+	int16_t z_data;
+}Gyro;
 
+typedef struct{
+	int16_t x_data;
+	int16_t y_data;
+	int16_t z_data;
+}Acc;
+
+typedef struct{
+	enum
+	{
+		FSR_250,
+		FSR_500,
+		FSR_1000,
+		FSR_2000
+	}gyroFSR;
+	enum
+	{
+		FSR_2,
+		FSR_4,
+		FSR_8,
+		FSR_16
+	}accFSR;
+	uint16_t sampleRate;
+
+}MPU6050Structure;
+
+extern Gyro gyro;
+extern Acc acc;
+
+void MPU6050GetGyro(Gyro *gyro);
+void MPU6050GetAcc(Acc *acc);
+void MPU6050Write(uint8_t addr,uint8_t reg,uint8_t data);
 uint8_t MPU6050Read(uint8_t addr,uint8_t reg);
 void MPU6050SetSampleRate(uint16_t hz);
-void MPU6050Init();
+uint8_t MPU6050Init();
 void I2C1_Init();
 uint8_t MPU6050Read(uint8_t addr,uint8_t reg);
 #endif
