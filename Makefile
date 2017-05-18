@@ -2,12 +2,19 @@ $(shell mkdir ./obj 2>/dev/null )
 # built-in rules variable ------------------------------------------------------------
 CC = arm-none-eabi-gcc
 AR = arm-none-eabi-ar
+ifneq "$(origin CFLAGS)" "environment"
 CFLAGS = -g -mtune=cortex-m4 -mthumb -std=c99 -fdata-sections -mfloat-abi=soft \
  -march=armv7-m -mthumb-interwork -mapcs-frame
-CPPFLAGS = -DUSE_STDPERIPH_DRIVER -DSTM32F40XX -DSTM32F407xx $(INCLUDEDIR)
+endif
+ifneq "$(origin CPPFLAGS)" "environment"
+CPPFLAGS = -DUSE_STDPERIPH_DRIVER -DSTM32F40XX -DSTM32F407xx
+endif
 TARGET_ARCH = 
 OUTPUT_OPTION = -o ./obj/$@
 ARFLAGS = rcs
+
+export CFLAGS CPPFLAGS
+CPPFLAGS += $(INCLUDEDIR)
 # ------------------------------------------------------------------------------------
 
 SRCDIR = ./USART
