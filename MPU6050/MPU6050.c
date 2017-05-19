@@ -3,12 +3,12 @@
 #define GYRO_FSR 2000
 Gyro gyro;
 Acc acc;
-void delay()
+void I2C_Delay()
 {
 	int i,j;
 	for(i=0;i<1000;i++)
 	{
-		for(j=0;j<1000;j++)
+		for(j=0;j<10;j++)
 		{
 
 		}
@@ -47,8 +47,8 @@ void I2C1_Init()
 	I2C_AcknowledgeConfig(I2C1,ENABLE); 
 	return;
 }
-
-void MPU6050Write(uint8_t addr,uint8_t reg,uint8_t data)
+ 
+void I2C1_Write(uint8_t addr,uint8_t reg,uint8_t data)
 {
 	while(I2C_GetFlagStatus(I2C1, I2C_FLAG_BUSY));
 	I2C_GenerateSTART(I2C1,ENABLE);
@@ -60,9 +60,10 @@ void MPU6050Write(uint8_t addr,uint8_t reg,uint8_t data)
 	I2C_SendData(I2C1,data);
 	while (!I2C_CheckEvent(I2C1, I2C_EVENT_MASTER_BYTE_TRANSMITTED));
 	I2C_GenerateSTOP(I2C1,ENABLE);
+	// I2C_Delay();
 }
 
-uint8_t MPU6050Read(uint8_t addr,uint8_t reg)
+uint8_t I2C1_Read(uint8_t addr,uint8_t reg)
 {
 	uint8_t data;
 	while(I2C_GetFlagStatus(I2C1, I2C_FLAG_BUSY));
@@ -88,28 +89,32 @@ uint8_t MPU6050Read(uint8_t addr,uint8_t reg)
 	data=I2C_ReceiveData(I2C1);
 	I2C_AcknowledgeConfig(I2C1,ENABLE);
 	// I2C_GenerateSTOP(I2C1,ENABLE);
+	// I2C_Delay();
 	return data;
 }
 
 void MPU6050SetSampleRate(uint16_t hz)
 {
-	MPU6050Write(MPU_ADDR,MPU_SAMPLE_RATE_REG,1000/hz - 1);
+	I2C1_Write(MPU_ADDR,MPU_SAMPLE_RATE_REG,1000/hz - 1);
 }
 
 uint8_t MPU6050Init()
 {
 	uint8_t res;
-	MPU6050Write(MPU_ADDR,MPU_PWR_MGMT1_REG,0X80);
-	delay();
-	MPU6050Write(MPU_ADDR,MPU_PWR_MGMT1_REG,0X00);
-	MPU6050Write(MPU_ADDR,MPU_CFG_REG,0x03);
-	MPU6050SetSampleRate(1000);
-	MPU6050Write(MPU_ADDR,MPU_GYRO_CFG_REG,0x18);
-	MPU6050Write(MPU_ADDR,MPU_ACCEL_CFG_REG,0x08);
-	res=MPU6050Read(MPU_ADDR,MPU_DEVICE_ID_REG);
+	I2C1_Write(MPU_ADDR,MPU_PWR_MGMT1_REG,0X80);		//Reset MPU6050
+	I2C_Delay();
+	I2C1_Write(MPU_ADDR,MPU_PWR_MGMT1_REG,0X00);
+	I2C1_Write(MPU_ADDR,MPU_CFG_REG,0x06);				//DLPF = 5Hz
+	MPU6050SetSampleRate(1000);							//Sample rate = 1000Hz
+	I2C1_Write(MPU_ADDR,MPU_GYRO_CFG_REG,0x18);			//Full Scale Range = 2000
+	I2C1_Write(MPU_ADDR,MPU_ACCEL_CFG_REG,0x18);		//Full Scale Range = 16g
+	I2C1_Write(MPU_ADDR,MPU_USER_CTRL_REG,0x00);		//Disable Master mode
+	I2C1_Write(MPU_ADDR,MPU_INTBP_CFG_REG,0x02);		//Enable Bypass mode
+	
+	res=I2C1_Read(MPU_ADDR,MPU_DEVICE_ID_REG);		//Read MPU6050's address
 	if(res=MPU_ADDR)
 	{
-		MPU6050Write(MPU_ADDR,MPU_PWR_MGMT1_REG,0X01);
+		I2C1_Write(MPU_ADDR,MPU_PWR_MGMT1_REG,0X01);
 	}
 	else
 	{
@@ -123,27 +128,27 @@ uint8_t MPU6050Init()
 void MPU6050GetGyro(Gyro *gyro)
 {
 	uint8_t data_1,data_2;
-	data_1=MPU6050Read(MPU_ADDR,MPU_GYRO_XOUTH_REG);
-	data_2=MPU6050Read(MPU_ADDR,MPU_GYRO_XOUTL_REG);
+	data_1=I2C1_Read(MPU_ADDR,MPU_GYRO_XOUTH_REG);
+	data_2=I2C1_Read(MPU_ADDR,MPU_GYRO_XOUTL_REG);
 	gyro->x_data = (int16_t)(data_1<<8|data_2)*GYRO_FSR/32768;
-	data_1=MPU6050Read(MPU_ADDR,MPU_GYRO_YOUTH_REG);
-	data_2=MPU6050Read(MPU_ADDR,MPU_GYRO_YOUTL_REG);
+	data_1=I2C1_Read(MPU_ADDR,MPU_GYRO_YOUTH_REG);
+	data_2=I2C1_Read(MPU_ADDR,MPU_GYRO_YOUTL_REG);
 	gyro->y_data = (int16_t)(data_1<<8|data_2)*GYRO_FSR/32768;
-	data_1=MPU6050Read(MPU_ADDR,MPU_GYRO_ZOUTH_REG);
-	data_2=MPU6050Read(MPU_ADDR,MPU_GYRO_ZOUTL_REG);
+	data_1=I2C1_Read(MPU_ADDR,MPU_GYRO_ZOUTH_REG);
+	data_2=I2C1_Read(MPU_ADDR,MPU_GYRO_ZOUTL_REG);
 	gyro->z_data = (int16_t)(data_1<<8|data_2)*GYRO_FSR/32768;
 }
 void MPU6050GetAcc(Acc *acc)
 {
 	uint8_t data_1,data_2;
-	data_1=MPU6050Read(MPU_ADDR,MPU_ACCEL_XOUTH_REG);
-	data_2=MPU6050Read(MPU_ADDR,MPU_ACCEL_XOUTL_REG);
+	data_1=I2C1_Read(MPU_ADDR,MPU_ACCEL_XOUTH_REG);
+	data_2=I2C1_Read(MPU_ADDR,MPU_ACCEL_XOUTL_REG);
 	acc->x_data = (int16_t)(data_1<<8|data_2)*ACC_FSR/32768;
-	data_1=MPU6050Read(MPU_ADDR,MPU_ACCEL_YOUTH_REG);
-	data_2=MPU6050Read(MPU_ADDR,MPU_ACCEL_YOUTL_REG);
+	data_1=I2C1_Read(MPU_ADDR,MPU_ACCEL_YOUTH_REG);
+	data_2=I2C1_Read(MPU_ADDR,MPU_ACCEL_YOUTL_REG);
 	acc->y_data = (int16_t)(data_1<<8|data_2)*ACC_FSR/32768;
-	data_1=MPU6050Read(MPU_ADDR,MPU_ACCEL_ZOUTH_REG);
-	data_2=MPU6050Read(MPU_ADDR,MPU_ACCEL_ZOUTL_REG);
+	data_1=I2C1_Read(MPU_ADDR,MPU_ACCEL_ZOUTH_REG);
+	data_2=I2C1_Read(MPU_ADDR,MPU_ACCEL_ZOUTL_REG);
 	acc->z_data = (int16_t)(data_1<<8|data_2)*ACC_FSR/32768;
 
 }
