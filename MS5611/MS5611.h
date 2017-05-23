@@ -1,7 +1,7 @@
 #ifndef _MS5661__H_
 #define _MS5661__H_
 
-#include <I2C_Soft/I2C_Soft.h>
+#include <I2C_Soft.h>
 
 #define MS5611_ADDR             0x77   
 

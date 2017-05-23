@@ -2,7 +2,7 @@
 #define _MPU6050_H__
 #include "stm32f4xx.h"
 #include "stm32f4xx_rcc.h"
-#include <I2C_Soft/I2C_Soft.h>
+#include <I2C_Soft.h>
 #define MPU_ADDR				0X68
 
 #define MPU_SELF_TESTX_REG		0X0D	

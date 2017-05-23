@@ -24,11 +24,11 @@ SRCDIR += ./AK8975
 SRCDIR += ./MS5611
 SRCDIR += ./I2C_Soft
 
-
 INCDIR = $(shell find -name *stm32f4*.h)
 INCDIR += $(shell find -name core*.h)
 INCDIR := $(dir $(INCDIR))
 INCDIR := $(sort $(INCDIR))
+INCDIR += $(SRCDIR)
 INCDIR += ./
 
 SRC := $(shell ls $(SRCDIR))

@@ -1,6 +1,6 @@
 #ifndef _AK8975__H_
 #define _AK8975__H_
-#include <MPU6050/MPU6050.h>
+#include <I2C_Soft.h>
 
 #define AK8975_ADDRESS         0x0c	// 0x18
 
