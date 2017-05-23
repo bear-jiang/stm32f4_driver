@@ -2,6 +2,7 @@
 #define _MPU6050_H__
 #include "stm32f4xx.h"
 #include "stm32f4xx_rcc.h"
+#include <I2C_Soft/I2C_Soft.h>
 #define MPU_ADDR				0X68
 
 #define MPU_SELF_TESTX_REG		0X0D	
@@ -105,12 +106,10 @@ typedef struct{
 extern Gyro gyro;
 extern Acc acc;
 
+
 void MPU6050GetGyro(Gyro *gyro);
 void MPU6050GetAcc(Acc *acc);
-void I2C1_Write(uint8_t addr,uint8_t reg,uint8_t data);
-uint8_t I2C1_Read(uint8_t addr,uint8_t reg);
 void MPU6050SetSampleRate(uint16_t hz);
 uint8_t MPU6050Init();
-void I2C1_Init();
 uint8_t MPU6050Read(uint8_t addr,uint8_t reg);
 #endif

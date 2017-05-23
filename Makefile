@@ -21,6 +21,8 @@ SRCDIR += ./PWM
 SRCDIR += ./LED
 SRCDIR += ./MPU6050
 SRCDIR += ./AK8975
+SRCDIR += ./MS5611
+SRCDIR += ./I2C_Soft
 
 
 INCDIR = $(shell find -name *stm32f4*.h)
