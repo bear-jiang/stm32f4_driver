@@ -15,9 +15,9 @@
 #define AK8975_CNTL    0x0A
 
 typedef struct{
-	int16_t x_data;
-	int16_t y_data;
-	int16_t z_data;
+	float x_data;
+	float y_data;
+	float z_data;
 }Mag;
 extern Mag mag;
 void AK8975Enable();

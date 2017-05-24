@@ -1,6 +1,6 @@
 #include "MPU6050.h"
-#define ACC_FSR 16
-#define GYRO_FSR 2000
+#define ACC_FSR 16.0
+#define GYRO_FSR 2000.0
 Gyro gyro;
 Acc acc;
 void I2C_Delay()
@@ -133,7 +133,7 @@ uint8_t MPU6050Init()
 	IIC_Write_1Byte(MPU_ADDR,MPU_PWR_MGMT1_REG,0X80);		//Reset MPU6050
 	I2C_Delay();
 	IIC_Write_1Byte(MPU_ADDR,MPU_PWR_MGMT1_REG,0X00);
-	IIC_Write_1Byte(MPU_ADDR,MPU_CFG_REG,0x06);				//DLPF = 5Hz
+	IIC_Write_1Byte(MPU_ADDR,MPU_CFG_REG,0x03);				//DLPF = 5Hz 0x06
 	MPU6050SetSampleRate(1000);							//Sample rate = 1000Hz
 	IIC_Write_1Byte(MPU_ADDR,MPU_GYRO_CFG_REG,0x18);			//Full Scale Range = 2000
 	IIC_Write_1Byte(MPU_ADDR,MPU_ACCEL_CFG_REG,0x18);		//Full Scale Range = 16g
@@ -159,25 +159,25 @@ void MPU6050GetGyro(Gyro *gyro)
 	uint8_t data_1,data_2;
 	IIC_Read_1Byte(MPU_ADDR,MPU_GYRO_XOUTH_REG,&data_1);
 	IIC_Read_1Byte(MPU_ADDR,MPU_GYRO_XOUTL_REG,&data_2);
-	gyro->x_data = (int16_t)(data_1<<8|data_2)*GYRO_FSR/32768;
+	gyro->x_data = (float)((int16_t)(data_1<<8|data_2))*GYRO_FSR/32768;
 	IIC_Read_1Byte(MPU_ADDR,MPU_GYRO_YOUTH_REG,&data_1);
 	IIC_Read_1Byte(MPU_ADDR,MPU_GYRO_YOUTL_REG,&data_2);
-	gyro->y_data = (int16_t)(data_1<<8|data_2)*GYRO_FSR/32768;
+	gyro->y_data = (float)((int16_t)(data_1<<8|data_2))*GYRO_FSR/32768;
 	IIC_Read_1Byte(MPU_ADDR,MPU_GYRO_ZOUTH_REG,&data_1);
 	IIC_Read_1Byte(MPU_ADDR,MPU_GYRO_ZOUTL_REG,&data_2);
-	gyro->z_data = (int16_t)(data_1<<8|data_2)*GYRO_FSR/32768;
+	gyro->z_data = (float)((int16_t)(data_1<<8|data_2))*GYRO_FSR/32768;
 }
 void MPU6050GetAcc(Acc *acc)
 {
 	uint8_t data_1,data_2;
 	IIC_Read_1Byte(MPU_ADDR,MPU_ACCEL_XOUTH_REG,&data_1);
 	IIC_Read_1Byte(MPU_ADDR,MPU_ACCEL_XOUTL_REG,&data_2);
-	acc->x_data = (int16_t)(data_1<<8|data_2)*ACC_FSR/32768;
+	acc->x_data = (float)((int16_t)(data_1<<8|data_2))*ACC_FSR/32768;
 	IIC_Read_1Byte(MPU_ADDR,MPU_ACCEL_YOUTH_REG,&data_1);
 	IIC_Read_1Byte(MPU_ADDR,MPU_ACCEL_YOUTL_REG,&data_2);
-	acc->y_data = (int16_t)(data_1<<8|data_2)*ACC_FSR/32768;
+	acc->y_data = (float)((int16_t)(data_1<<8|data_2))*ACC_FSR/32768;
 	IIC_Read_1Byte(MPU_ADDR,MPU_ACCEL_ZOUTH_REG,&data_1);
 	IIC_Read_1Byte(MPU_ADDR,MPU_ACCEL_ZOUTL_REG,&data_2);
-	acc->z_data = (int16_t)(data_1<<8|data_2)*ACC_FSR/32768;
+	acc->z_data = (float)((int16_t)(data_1<<8|data_2))*ACC_FSR/32768;
 
 }

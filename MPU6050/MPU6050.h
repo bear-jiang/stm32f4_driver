@@ -73,15 +73,15 @@
 #define MPU_DEVICE_ID_REG		0X75	
 
 typedef struct{
-	int16_t x_data;
-	int16_t y_data;
-	int16_t z_data;
+	float x_data;
+	float y_data;
+	float z_data;
 }Gyro;
 
 typedef struct{
-	int16_t x_data;
-	int16_t y_data;
-	int16_t z_data;
+	float x_data;
+	float y_data;
+	float z_data;
 }Acc;
 
 typedef struct{
