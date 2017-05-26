@@ -72,6 +72,9 @@
 #define MPU_FIFO_RW_REG			0X74	
 #define MPU_DEVICE_ID_REG		0X75	
 
+#define GYRO_ID  			0x02
+#define ACC_ID  			0x03
+
 typedef struct{
 	float x_data;
 	float y_data;
@@ -112,4 +115,5 @@ void MPU6050GetAcc(Acc *acc);
 void MPU6050SetSampleRate(uint16_t hz);
 uint8_t MPU6050Init();
 uint8_t MPU6050Read(uint8_t addr,uint8_t reg);
+void GyroAccValuePrint();
 #endif

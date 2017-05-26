@@ -1,9 +1,9 @@
 #include "USART.h"
 #include <string.h>
 #include <stdio.h>
-#define LENGTH 1000
+#define LENGTH 100
 static uint8_t _USART1_DMA_RX_BUF[LENGTH];
-
+uint8_t _USART1_DMA_TX_BUF[100];
 
 void USART1_Init(u32 baud_rate)
 {
@@ -38,7 +38,8 @@ void USART1_Init(u32 baud_rate)
 
 
     USART_DMACmd(USART1, USART_DMAReq_Rx, ENABLE);
-
+    USART_DMACmd(USART1, USART_DMAReq_Tx, ENABLE);
+/************************config usart1 dma recieve**********************/
     DMA_DeInit(DMA2_Stream2);
     DMA_StructInit(&dma);
     dma.DMA_Channel = DMA_Channel_4;
@@ -57,19 +58,76 @@ void USART1_Init(u32 baud_rate)
     dma.DMA_MemoryBurst = DMA_MemoryBurst_Single;
     dma.DMA_PeripheralBurst = DMA_PeripheralBurst_Single;
     DMA_Init(DMA2_Stream2, &dma);
-
     DMA_Cmd(DMA2_Stream2, ENABLE);
+/************************config usart1 dma send**********************/
+    DMA_DeInit(DMA2_Stream7);
+    DMA_StructInit(&dma);
+    dma.DMA_Channel = DMA_Channel_4;
+    dma.DMA_PeripheralBaseAddr = (uint32_t)(&USART1->DR);
+    dma.DMA_Memory0BaseAddr = (uint32_t)&_USART1_DMA_TX_BUF[0];
+    dma.DMA_DIR = DMA_DIR_MemoryToPeripheral;
+    dma.DMA_BufferSize = 0;
+    dma.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
+    dma.DMA_MemoryInc = DMA_MemoryInc_Enable;
+    dma.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
+    dma.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
+    dma.DMA_Mode = DMA_Mode_Normal;
+    dma.DMA_Priority = DMA_Priority_Medium;
+    dma.DMA_FIFOMode = DMA_FIFOMode_Disable;
+    dma.DMA_FIFOThreshold = DMA_FIFOThreshold_1QuarterFull;
+    dma.DMA_MemoryBurst = DMA_MemoryBurst_Single;
+    dma.DMA_PeripheralBurst = DMA_PeripheralBurst_Single;
+    DMA_Init(DMA2_Stream7, &dma);
+/************************config DMA2 Stream7 interrupt**********************/
+    // NVIC_InitStructure.NVIC_IRQChannel = DMA2_Stream7_IRQn;
+    // NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 9; 
+    // NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0; 
+    // NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE; 
+    // NVIC_Init(&NVIC_InitStructure); 
+    // DMA_ITConfig(DMA2_Stream7,DMA_IT_TCIF7,ENABLE);
 
+/************************config usart1_rx interrupt**********************/
     nvic.NVIC_IRQChannel = USART1_IRQn;                          
     nvic.NVIC_IRQChannelPreemptionPriority = 0;   //pre-emption priority 
     nvic.NVIC_IRQChannelSubPriority = 0;		    //subpriority 
     nvic.NVIC_IRQChannelCmd = ENABLE;			
     NVIC_Init(&nvic);	
+    USART_ITConfig(USART1, USART_IT_IDLE, ENABLE);       
 
-    USART_ITConfig(USART1, USART_IT_IDLE, ENABLE);        //usart rx idle interrupt  enabled
     USART_Cmd(USART1, ENABLE);
     // BSP_IntVectSet(BSP_INT_ID_USART1,USART1_IRQHandler);
     // BSP_IntPrioSet(BSP_INT_ID_USART1,10);
+}
+
+void USART1_DMA_SendBuf(uint8_t *p,uint8_t size)
+{
+    int i=0;
+    memcpy(_USART1_DMA_TX_BUF,p,size);
+    DMA2_Stream7->NDTR = (u16)size; 
+    DMA_Cmd(DMA2_Stream7, ENABLE);
+    while(DMA_GetFlagStatus(DMA2_Stream7,DMA_FLAG_TCIF7) == RESET);
+    DMA_ClearFlag(DMA2_Stream7,DMA_FLAG_TCIF7);
+    DMA_Cmd(DMA2_Stream7, DISABLE);
+
+}
+
+void ValueProtocalPrint(char* p,uint8_t size,uint8_t id)
+{
+    static uint8_t count = 0;
+    uint8_t buffer[50];
+    uint8_t i = 0;
+    buffer[0] = 0xfe;
+    buffer[1] = size;
+    buffer[2] = count;
+    buffer[3] = id;
+    for(i=0;i<size;i++)
+    {
+        buffer[4+i] = *(p+i);
+    }
+    buffer[4+size]=0x0d;
+    buffer[4+size+1]=0x0a;
+    USART1_DMA_SendBuf(buffer,size+6);
+    count++;
 }
 
 int fputc(int ch, FILE *f)
@@ -79,61 +137,18 @@ int fputc(int ch, FILE *f)
     return ch;
 }
 
-void USART1_Send(int8_t data)
+void USART1_Send(uint8_t data)
 {
     USART_SendData(USART1,data);
     while(USART_GetFlagStatus(USART1, USART_FLAG_TC) == RESET);
 }
 
-// void usart1_send_string(int8_t *p, ...)
-// {
-//     uint8_t *q=p;
-//     va_list ap;
-//     va_start(ap,p);
-//     while(*q!='\0')
-//     {
-//         if(*q=='%')
-//         {
-//             switch(*(q+1))
-//             {
-//                 case 'd':
-//                 {
-//                     int a=(int)va_arg(ap, int);
-//                     int c=10000;
-//                     if(a<0)
-//                     {
-//                         usart1_send('-');
-//                         a=-a;
-//                     }
-//                     while(a/c==0)
-//                     {
-//                         c/=10;
-//                     }
-//                     do
-//                     {
-//                         usart1_send(a/c);
-//                         a%=c;
-//                         c/=10;
-//                     }
-//                     while(c!=0);
-//                     q+=2;
-//                     break;
-//                 }
-//                 case 'f':break;
-//             }
-//             continue;
-//         }
-//         usart1_send(*q);
-//         q++;
-//     }
-//     va_end(ap);
-// }
+
 
 uint32_t thisRxLenth = 0;
 
-void USART1_IRQHandler(void)                	//串口1中断服务程序
+void USART1_IRQHandler(void)                	//麓庐驴脷1脰脨露脧路镁脦帽鲁脤脨貌
 {
-    TIM_Cmd(TIM6, DISABLE);
 
     if(USART_GetITStatus(USART1, USART_IT_IDLE) != RESET)
     {
@@ -150,7 +165,6 @@ void USART1_IRQHandler(void)                	//串口1中断服务程序
             DMA_Cmd(DMA2_Stream2, ENABLE);
         }
     }     
-    TIM_Cmd(TIM6, ENABLE);  
 }
 
 

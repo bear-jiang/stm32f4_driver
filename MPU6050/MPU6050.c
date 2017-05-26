@@ -93,35 +93,6 @@ void I2C_Delay()
 // 	return data;
 // }
 
-// void I2C1_MultiRead(uint8_t addr,uint8_t reg,uint8_t* buffer,uint8_t num)
-// {
-// 	while(I2C_GetFlagStatus(I2C1, I2C_FLAG_BUSY));
-// 	I2C_GenerateSTART(I2C1,ENABLE);
-// 	while(!I2C_CheckEvent(I2C1, I2C_EVENT_MASTER_MODE_SELECT));
-// 	I2C_Send7bitAddress(I2C1,addr<<1,I2C_Direction_Transmitter);
-// 	while (!I2C_CheckEvent(I2C1, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED));
-// 	I2C_Cmd(I2C1, ENABLE);
-// 	I2C_SendData(I2C1,reg);
-// 	while (!I2C_CheckEvent(I2C1, I2C_EVENT_MASTER_BYTE_TRANSMITTED));
-// 	I2C_GenerateSTART(I2C1,ENABLE);
-// 	while(!I2C_CheckEvent(I2C1, I2C_EVENT_MASTER_MODE_SELECT));
-// 	I2C_Send7bitAddress(I2C1,addr<<1,I2C_Direction_Receiver);
-// 	while (!I2C_CheckEvent(I2C1, I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED));
-// 	I2C_AcknowledgeConfig(I2C1,ENABLE);
-//  	while(num>0)
-//  	{
-// 		I2C_AcknowledgeConfig(I2C1,DISABLE);
-// 		while (!I2C_CheckEvent(I2C1, I2C_EVENT_MASTER_BYTE_RECEIVED));
-// 		*buffer=I2C_ReceiveData(I2C1);
-// 		num--;
-// 		buffer++;
-// 	}
-// 	I2C_AcknowledgeConfig(I2C1,DISABLE);
-// 	I2C_GenerateSTOP(I2C1,ENABLE);
-// 	// I2C_AcknowledgeConfig(I2C1,ENABLE);
-// 	return;
-// }
-
 void MPU6050SetSampleRate(uint16_t hz)
 {
 	IIC_Write_1Byte(MPU_ADDR,MPU_SAMPLE_RATE_REG,1000/hz - 1);
@@ -181,3 +152,25 @@ void MPU6050GetAcc(Acc *acc)
 	acc->z_data = (float)((int16_t)(data_1<<8|data_2))*ACC_FSR/32768;
 
 }
+
+void GyroAccValuePrint()
+{
+	static uint8_t count=0;
+	uint8_t i=0;
+	USART1_Send(0xfe);
+	USART1_Send(12);//12 bytes
+	USART1_Send(count);
+	USART1_Send(GYRO_ID);
+	for(i=0;i<12;i++)
+	{
+		USART1_Send(*((char*)(&gyro)+i));
+	}
+	// for(i=0;i<12;i++)
+	// {
+	// 	USART1_Send(*((char*)(&acc)+i));
+	// }
+	USART1_Send(0x0d);
+	USART1_Send(0x0a);
+	count++;
+}
+

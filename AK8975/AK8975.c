@@ -34,4 +34,20 @@ void GetMag(Mag* mag)
 	}
 }
 
+void MagValuePrint()
+{
+	static uint8_t count=0;
+	uint8_t i=0;
+	USART1_Send(0xfe);
+	USART1_Send(12);//12 bytes
+	USART1_Send(count);
+	USART1_Send(MAG_ID);
+	for(i=0;i<12;i++)
+	{
+		USART1_Send(*((char*)(&mag)+i));
+	}
+	USART1_Send(0x0d);
+	USART1_Send(0x0a);
+	count++;
+}
 
