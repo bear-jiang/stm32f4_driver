@@ -15,7 +15,7 @@ void TIM6_Init(void (*func)(void))
     tim.TIM_Prescaler = 84-1;        //84M internal clock
     tim.TIM_CounterMode = TIM_CounterMode_Up;
     tim.TIM_ClockDivision = TIM_CKD_DIV1;
-    tim.TIM_Period = 1000;  //1ms,1000Hz
+    tim.TIM_Period = 5000;  //1ms,1000Hz
     TIM_TimeBaseInit(TIM6,&tim);
 
     TIM_Cmd(TIM6, ENABLE);   
@@ -36,8 +36,7 @@ void TIM6_Start(void)
     TIM_ClearFlag(TIM6, TIM_FLAG_Update);   
 }
 
-// #ifndef _UCOS
-static void TIM6_DAC_IRQHandler(void)  
+void TIM6_DAC_IRQHandler(void)  
 {
     
     if (TIM_GetITStatus(TIM6,TIM_IT_Update)!= RESET) 
@@ -45,7 +44,7 @@ static void TIM6_DAC_IRQHandler(void)
         static uint16_t count=0;
         TIM_ClearITPendingBit(TIM6,TIM_IT_Update);
         TIM_ClearFlag(TIM6, TIM_FLAG_Update);
-        USART1_Send(0x0c);
+        
+        // USART1_Send(0x0c);
     }
 }
-// #endif
