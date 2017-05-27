@@ -1,5 +1,5 @@
 #include "Timer.h"
-void TIM6_Init(void)
+void TIM6_Init(void (*func)(void))
 {
     TIM_TimeBaseInitTypeDef  tim;
     NVIC_InitTypeDef         nvic;
@@ -19,11 +19,14 @@ void TIM6_Init(void)
     TIM_TimeBaseInit(TIM6,&tim);
 
     TIM_Cmd(TIM6, ENABLE);   
-    TIM_ITConfig(TIM6, TIM_IT_Update,ENABLE);
-    #ifdef _UCOS
-    BSP_IntVectSet(BSP_INT_ID_TIM6_DAC,TIM6_DAC_IRQHandler);
-	BSP_IntPrioSet(BSP_INT_ID_TIM6_DAC,9);
-	#endif
+    if(func==0)
+    {
+        TIM_ITConfig(TIM6, TIM_IT_Update,ENABLE);
+    }
+    else
+    {
+        (*func)();
+    }
 }
 
 void TIM6_Start(void)
@@ -33,9 +36,8 @@ void TIM6_Start(void)
     TIM_ClearFlag(TIM6, TIM_FLAG_Update);   
 }
 
-// __attribute__ ((weak)) 
-#ifndef _UCOS
-void TIM6_DAC_IRQHandler(void)  
+// #ifndef _UCOS
+static void TIM6_DAC_IRQHandler(void)  
 {
     
     if (TIM_GetITStatus(TIM6,TIM_IT_Update)!= RESET) 
@@ -43,7 +45,7 @@ void TIM6_DAC_IRQHandler(void)
         static uint16_t count=0;
         TIM_ClearITPendingBit(TIM6,TIM_IT_Update);
         TIM_ClearFlag(TIM6, TIM_FLAG_Update);
-        USART1_Send(0x0f);
+        USART1_Send(0x0c);
     }
 }
-#endif
+// #endif
